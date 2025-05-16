@@ -6,6 +6,14 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+// Export specific table types for easier use in tests and components
+export type User = Database['public']['Tables']['users']['Row'];
+export type Product = Database['public']['Tables']['products']['Row'];
+export type Category = Database['public']['Tables']['categories']['Row'];
+export type Order = Database['public']['Tables']['orders']['Row'];
+export type OrderItem = Database['public']['Tables']['order_items']['Row'];
+export type Media = Database['public']['Tables']['media']['Row'];
+
 export interface Database {
   public: {
     Tables: {

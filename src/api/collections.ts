@@ -2,23 +2,21 @@ import { supabase } from './supabase';
 import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 import type { Database } from '../types/supabase';
 
+// Define the valid table names for type checking
 type TableName = keyof Database['public']['Tables'];
-type Row<T extends TableName> = Database['public']['Tables'][T]['Row'];
-type Insert<T extends TableName> = Database['public']['Tables'][T]['Insert'];
-type Update<T extends TableName> = Database['public']['Tables'][T]['Update'];
 
 /**
  * Generic function to get all items from a specific collection
  */
-export const getAll = async <T extends TableName>(
-  table: T,
+export const getAll = async <T>(
+  table: TableName,
   options?: {
     limit?: number;
     offset?: number;
     orderBy?: { column: string; ascending?: boolean };
     filters?: Record<string, any>;
   }
-): Promise<Row<T>[]> => {
+): Promise<T[]> => {
   let query = supabase.from(table).select('*') as PostgrestFilterBuilder<any, any, any[]>;
 
   // Apply filters if provided
@@ -50,49 +48,49 @@ export const getAll = async <T extends TableName>(
     throw new Error(`Error fetching ${table}: ${error.message}`);
   }
 
-  return data as Row<T>[];
+  return data as unknown as T[];
 };
 
 /**
  * Generic function to get a single item from a collection by id
  */
-export const getById = async <T extends TableName>(
-  table: T,
+export const getOne = async <T>(
+  table: TableName,
   id: string
-): Promise<Row<T>> => {
+): Promise<T> => {
   const { data, error } = await supabase.from(table).select('*').eq('id', id).single();
 
   if (error) {
     throw new Error(`Error fetching ${table} with id ${id}: ${error.message}`);
   }
 
-  return data as Row<T>;
+  return data as unknown as T;
 };
 
 /**
  * Generic function to create a new item in a collection
  */
-export const create = async <T extends TableName>(
-  table: T,
-  item: Insert<T>
-): Promise<Row<T>> => {
+export const create = async <T>(
+  table: TableName,
+  item: Record<string, any>
+): Promise<T> => {
   const { data, error } = await supabase.from(table).insert(item).select().single();
 
   if (error) {
     throw new Error(`Error creating item in ${table}: ${error.message}`);
   }
 
-  return data as Row<T>;
+  return data as unknown as T;
 };
 
 /**
  * Generic function to update an item in a collection
  */
-export const update = async <T extends TableName>(
-  table: T,
+export const update = async <T>(
+  table: TableName,
   id: string,
-  updates: Update<T>
-): Promise<Row<T>> => {
+  updates: Record<string, any>
+): Promise<T> => {
   const { data, error } = await supabase
     .from(table)
     .update(updates)
@@ -104,14 +102,14 @@ export const update = async <T extends TableName>(
     throw new Error(`Error updating item in ${table}: ${error.message}`);
   }
 
-  return data as Row<T>;
+  return data as unknown as T;
 };
 
 /**
  * Generic function to delete an item from a collection
  */
-export const remove = async <T extends TableName>(
-  table: T,
+export const remove = async (
+  table: TableName,
   id: string
 ): Promise<void> => {
   const { error } = await supabase.from(table).delete().eq('id', id);
@@ -124,15 +122,15 @@ export const remove = async <T extends TableName>(
 /**
  * Function to search items in a collection
  */
-export const search = async <T extends TableName>(
-  table: T,
+export const search = async <T>(
+  table: TableName,
   query: string,
   searchColumns: string[],
   options?: {
     limit?: number;
     offset?: number;
   }
-): Promise<Row<T>[]> => {
+): Promise<T[]> => {
   let queryBuilder = supabase.from(table).select('*');
 
   // Build OR conditions for each column
@@ -161,5 +159,5 @@ export const search = async <T extends TableName>(
     throw new Error(`Error searching ${table}: ${error.message}`);
   }
 
-  return data as Row<T>[];
+  return data as unknown as T[];
 };
